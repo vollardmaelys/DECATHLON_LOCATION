@@ -10,13 +10,15 @@ const equipmentIds = new Set([
   'beach-tennis',
 ]);
 
-const timeSlots = new Set(['08:00', '10:00', '12:00', '14:00', '16:00']);
+const timeSlots = new Set(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']);
+const rentalDurations = new Set(['half-day', 'day']);
 const db = getDatabase();
 
 type BookingRequest = {
   equipmentId?: unknown;
   date?: unknown;
   time?: unknown;
+  duration?: unknown;
   name?: unknown;
   email?: unknown;
 };
@@ -25,6 +27,7 @@ type ValidBookingRequest = {
   equipmentId: string;
   date: string;
   time: string;
+  duration: 'half-day' | 'day';
   name: string;
   email: string;
 };
@@ -41,6 +44,8 @@ function isValidRequest(data: BookingRequest): data is ValidBookingRequest {
     && isValidDate(data.date)
     && typeof data.time === 'string'
     && timeSlots.has(data.time)
+    && typeof data.duration === 'string'
+    && rentalDurations.has(data.duration)
     && typeof data.name === 'string'
     && data.name.trim().length >= 2
     && typeof data.email === 'string'
@@ -64,15 +69,16 @@ export default async (request: Request) => {
     }
 
     try {
-      const rows = await db.sql<{ start_time: string }>`
-        SELECT start_time
+      const rows = await db.sql<{ start_time: string; duration: string }>`
+        SELECT start_time, duration
         FROM bookings
         WHERE equipment_id = ${equipmentId}
           AND rental_date = ${date}
           AND status = 'confirmed'
         ORDER BY start_time
       `;
-      return json({ bookedSlots: rows.map((row) => row.start_time.slice(0, 5)) });
+      const hasFullDayBooking = rows.some((row) => row.duration === 'day');
+      return json({ bookedSlots: hasFullDayBooking ? [...timeSlots] : rows.map((row) => row.start_time.slice(0, 5)) });
     } catch {
       return json({ error: 'Impossible de charger les disponibilités.' }, 500);
     }
@@ -96,17 +102,33 @@ export default async (request: Request) => {
   try {
     const id = crypto.randomUUID();
     const rows = await db.sql<{ id: string }>`
-      INSERT INTO bookings (id, equipment_id, rental_date, start_time, customer_name, customer_email)
-      VALUES (
-        ${id},
-        ${data.equipmentId},
-        ${data.date},
-        ${data.time},
-        ${data.name.trim()},
-        ${data.email.trim().toLowerCase()}
+      WITH booking_lock AS (
+        SELECT pg_advisory_xact_lock(hashtext(${data.equipmentId} || ':' || ${data.date}))
+      ),
+      conflicting_booking AS (
+        SELECT 1
+        FROM bookings, booking_lock
+        WHERE equipment_id = ${data.equipmentId}
+          AND rental_date = ${data.date}
+          AND (duration = 'day' OR ${data.duration} = 'day' OR start_time = ${data.time})
+        LIMIT 1
+      ),
+      inserted_booking AS (
+        INSERT INTO bookings (id, equipment_id, rental_date, start_time, duration, customer_name, customer_email)
+        SELECT
+          ${id},
+          ${data.equipmentId},
+          ${data.date},
+          ${data.time},
+          ${data.duration},
+          ${data.name.trim()},
+          ${data.email.trim().toLowerCase()}
+        FROM booking_lock
+        WHERE NOT EXISTS (SELECT 1 FROM conflicting_booking)
+        ON CONFLICT (equipment_id, rental_date, start_time) DO NOTHING
+        RETURNING id
       )
-      ON CONFLICT (equipment_id, rental_date, start_time) DO NOTHING
-      RETURNING id
+      SELECT id FROM inserted_booking
     `;
 
     if (rows.length === 0) {
