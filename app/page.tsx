@@ -19,20 +19,27 @@ type Equipment = {
   category: string;
   image: string;
   price: string;
+  dayPrice: string;
   detail: string;
   tag?: string;
 };
 
+type RentalDuration = 'half-day' | 'day';
+
 const equipment: Equipment[] = [
-  { id: 'kayak-duo', name: 'Kayak duo', category: 'Nautisme', image: '/images/kayak.png', price: '3 500 F', detail: '2 places · gilets inclus', tag: 'Le plus loué' },
-  { id: 'paddle-11', name: 'Paddle 11′', category: 'Nautisme', image: '/images/paddle.png', price: '3 000 F', detail: 'Stable · gonflable', tag: 'Lagoon ready' },
-  { id: 'surf-mousse', name: 'Planche de surf', category: 'Glisse', image: '/images/surf.png', price: '3 000 F', detail: 'Mousse 8′ · leash inclus' },
-  { id: 'tennis-racket', name: 'Raquette de tennis', category: 'Raquettes', image: '/images/tennis.png', price: '1 500 F', detail: 'Raquette & 3 balles' },
-  { id: 'padel-racket', name: 'Raquette de padel', category: 'Raquettes', image: '/images/padel.png', price: '1 500 F', detail: 'Niveau débutant à confirmé' },
-  { id: 'beach-tennis', name: 'Raquette de beach tennis', category: 'Raquettes', image: '/images/beach-tennis.png', price: '1 500 F', detail: 'Légère · prête à jouer' },
+  { id: 'kayak-duo', name: 'Kayak duo', category: 'Nautisme', image: '/images/kayak.png', price: '3 500 F', dayPrice: '6 000 F', detail: '2 places · gilets inclus', tag: 'Le plus loué' },
+  { id: 'paddle-11', name: 'Paddle 11′', category: 'Nautisme', image: '/images/paddle.png', price: '3 000 F', dayPrice: '5 000 F', detail: 'Stable · gonflable', tag: 'Lagoon ready' },
+  { id: 'surf-mousse', name: 'Planche de surf', category: 'Glisse', image: '/images/surf.png', price: '3 000 F', dayPrice: '5 000 F', detail: 'Mousse 8′ · leash inclus' },
+  { id: 'tennis-racket', name: 'Raquette de tennis', category: 'Raquettes', image: '/images/tennis.png', price: '1 500 F', dayPrice: '2 500 F', detail: 'Raquette & 3 balles' },
+  { id: 'padel-racket', name: 'Raquette de padel', category: 'Raquettes', image: '/images/padel.png', price: '1 500 F', dayPrice: '2 500 F', detail: 'Niveau débutant à confirmé' },
+  { id: 'beach-tennis', name: 'Raquette de beach tennis', category: 'Raquettes', image: '/images/beach-tennis.png', price: '1 500 F', dayPrice: '2 500 F', detail: 'Légère · prête à jouer' },
 ];
 
-const timeSlots = ['08:00', '10:00', '12:00', '14:00', '16:00'];
+const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+const rentalDurations: { id: RentalDuration; label: string; detail: string }[] = [
+  { id: 'half-day', label: 'Demi-journée', detail: 'Matin ou après-midi' },
+  { id: 'day', label: 'Journée', detail: 'Jusqu’à la fermeture' },
+];
 
 function dateInDays(days: number) {
   const date = new Date();
@@ -48,6 +55,7 @@ function prettyDate(date: string) {
 export default function Home() {
   const [selectedId, setSelectedId] = useState('kayak-duo');
   const [selectedDate, setSelectedDate] = useState(() => dateInDays(1));
+  const [selectedDuration, setSelectedDuration] = useState<RentalDuration>('half-day');
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(true);
@@ -58,6 +66,12 @@ export default function Home() {
   const [email, setEmail] = useState('');
 
   const selectedEquipment = useMemo(() => equipment.find((item) => item.id === selectedId) ?? equipment[0], [selectedId]);
+  const selectedDurationLabel = rentalDurations.find((duration) => duration.id === selectedDuration)?.label ?? 'Demi-journée';
+  const displayedPrice = selectedDuration === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price;
+  const fullDayUnavailable = selectedDuration === 'day' && bookedSlots.length > 0;
+  const availableSlotCount = selectedDuration === 'day'
+    ? (fullDayUnavailable ? 0 : 1)
+    : timeSlots.filter((time) => !bookedSlots.includes(time)).length;
 
   useEffect(() => {
     let isCurrent = true;
@@ -89,7 +103,7 @@ export default function Home() {
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ equipmentId: selectedId, date: selectedDate, time: selectedTime, name, email }),
+        body: JSON.stringify({ equipmentId: selectedId, date: selectedDate, time: selectedTime, duration: selectedDuration, name, email }),
       });
       const data = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -123,9 +137,9 @@ export default function Home() {
 
       <section id="accueil" className="hero section-shell">
         <div className="hero-copy">
-          <p className="eyebrow"><Sparkles aria-hidden="true" /> Ta prochaine session commence ici</p>
-          <h1>Le grand air, <em>sans s’encombrer.</em></h1>
-          <p className="hero-text">Loue ton matériel pour la journée ou la demi-journée. Simple à réserver, prêt à retirer à Punaauia.</p>
+          <p className="eyebrow"><Sparkles aria-hidden="true" /> Tout le matériel, sans contrainte</p>
+          <h1>La location qui libère <em>tes envies de sport.</em></h1>
+          <p className="hero-text">Kayak, paddle, surf ou raquette : choisis ton terrain de jeu et réserve ton matériel pour la demi-journée ou la journée.</p>
           <div className="hero-actions"><a className="button button-primary" href="#reserver">Trouver mon créneau <ChevronRight aria-hidden="true" /></a><a className="text-link" href="#equipements">Voir les équipements</a></div>
           <div className="hero-notes" aria-label="Les avantages de la location"><span><Check aria-hidden="true" /> Matériel vérifié</span><span><Check aria-hidden="true" /> Retrait rapide</span><span><Check aria-hidden="true" /> Paiement en magasin</span></div>
         </div>
@@ -149,15 +163,15 @@ export default function Home() {
           <div className="booking-intro"><p className="eyebrow">Réservation en ligne</p><h2>Un créneau, et c’est parti.</h2><p>Choisis ton matériel, la date et l’horaire de retrait. Les créneaux déjà réservés se verrouillent automatiquement.</p><div className="booking-tip"><ShieldCheck aria-hidden="true" /> Ton matériel est mis de côté dès la confirmation.</div></div>
           <div className="booking-card" aria-live="polite">
             {confirmation ? (
-              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
+              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
             ) : (
               <>
-                <div className="booking-card-top"><div><span className="booking-step">01</span><h3>Ta location</h3></div><span className="booking-price">{selectedEquipment.price}<small> / demi-journée</small></span></div>
+                <div className="booking-card-top"><div><span className="booking-step">01</span><h3>Ta location</h3></div><span className="booking-price">{displayedPrice}<small> / {selectedDurationLabel.toLowerCase()}</small></span></div>
                 <label className="field-label" htmlFor="equipment">Matériel</label>
                 <select id="equipment" className="select-control" value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>{equipment.map((item) => <option key={item.id} value={item.id}>{item.name} — {item.price}</option>)}</select>
-                <div className="field-pair"><div><label className="field-label" htmlFor="date">Date de retrait</label><div className="field-with-icon"><CalendarDays aria-hidden="true" /><input id="date" type="date" min={dateInDays(0)} value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></div></div><div><span className="field-label">Durée</span><div className="duration-value"><Clock3 aria-hidden="true" /> Demi-journée</div></div></div>
-                <div className="slot-header"><span className="field-label">Créneau de retrait</span><small>{isLoadingSlots ? 'Mise à jour…' : `${timeSlots.length - bookedSlots.length} créneaux disponibles`}</small></div>
-                <div className="slot-grid">{timeSlots.map((time) => { const unavailable = bookedSlots.includes(time); return <button key={time} type="button" className={`slot ${selectedTime === time ? 'slot-selected' : ''}`} disabled={isLoadingSlots || unavailable} onClick={() => setSelectedTime(time)}>{time}<small>{unavailable ? 'Indisponible' : 'Disponible'}</small></button>; })}</div>
+                <div className="field-pair"><div><label className="field-label" htmlFor="date">Date de retrait</label><div className="field-with-icon"><CalendarDays aria-hidden="true" /><input id="date" type="date" min={dateInDays(0)} value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></div></div><div><span className="field-label">Durée</span><div className="duration-options" role="group" aria-label="Durée de location">{rentalDurations.map((duration) => <button key={duration.id} type="button" className={`duration-option ${selectedDuration === duration.id ? 'duration-option-selected' : ''}`} onClick={() => setSelectedDuration(duration.id)}><Clock3 aria-hidden="true" /><span>{duration.label}<small>{duration.detail}</small></span></button>)}</div></div></div>
+                <div className="slot-header"><span className="field-label">Heure de retrait</span><small>{isLoadingSlots ? 'Mise à jour…' : `${availableSlotCount} ${selectedDuration === 'day' ? 'journée' : 'créneaux'} disponible${availableSlotCount > 1 ? 's' : ''}`}</small></div>
+                <div className="slot-grid">{timeSlots.map((time) => { const unavailable = bookedSlots.includes(time) || fullDayUnavailable; return <button key={time} type="button" className={`slot ${selectedTime === time ? 'slot-selected' : ''}`} disabled={isLoadingSlots || unavailable} onClick={() => setSelectedTime(time)}>{time}<small>{unavailable ? 'Indisponible' : 'Disponible'}</small></button>; })}</div>
                 <div className="customer-fields"><div><label className="field-label" htmlFor="name">Ton nom</label><input id="name" className="text-control" value={name} onChange={(event) => setName(event.target.value)} placeholder="Prénom et nom" autoComplete="name" /></div><div><label className="field-label" htmlFor="email">Ton e-mail</label><div className="field-with-icon"><Mail aria-hidden="true" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="toi@email.com" autoComplete="email" /></div></div></div>
                 {notice && <p className="form-notice" role="status">{notice}</p>}
                 <button className="button button-primary confirm-button" type="button" onClick={reserveSlot} disabled={isSubmitting || isLoadingSlots}>{isSubmitting ? 'Confirmation…' : 'Valider ma réservation'} <ChevronRight aria-hidden="true" /></button><p className="payment-note">Aucun paiement en ligne. Tu règles ta location lors du retrait.</p>
