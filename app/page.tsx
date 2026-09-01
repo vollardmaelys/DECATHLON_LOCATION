@@ -152,7 +152,7 @@ export default function Home() {
           {equipment.map((item) => (
             <article className={`equipment-card ${selectedId === item.id ? 'selected' : ''}`} key={item.id}>
               <div className="equipment-visual">{item.tag && <span className="equipment-tag">{item.tag}</span>}<img src={item.image} alt={item.name} className="product-image" /><span className="visual-label">{item.category}</span></div>
-              <div className="equipment-content"><p className="equipment-name">{item.name}</p><p className="equipment-detail">{item.detail}</p><div className="equipment-bottom"><span><strong>{item.price}</strong> / demi-journée</span><button type="button" onClick={() => chooseEquipment(item.id)} aria-label={`Louer ${item.name}`}><ChevronRight aria-hidden="true" /></button></div></div>
+              <div className="equipment-content"><p className="equipment-name">{item.name}</p><p className="equipment-detail">{item.detail}</p><div className="equipment-bottom"><div className="equipment-price-list" aria-label={`Tarifs de location pour ${item.name}`}><span><strong>{item.price}</strong><small>Demi-journée</small></span><span><strong>{item.dayPrice}</strong><small>Journée</small></span></div><button type="button" onClick={() => chooseEquipment(item.id)} aria-label={`Louer ${item.name}`}><ChevronRight aria-hidden="true" /></button></div></div>
             </article>
           ))}
         </div>
