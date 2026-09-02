@@ -144,7 +144,7 @@ export default function Home() {
       <section id="accueil" className="hero section-shell">
         <div className="hero-copy">
           <p className="eyebrow"><Sparkles aria-hidden="true" /> Tout le matériel, sans contrainte</p>
-          <h1>La location qui libère <em>tes envies de sport.</em></h1>
+          <h1>Testez, <em>approuvez, achetez.</em></h1>
           <p className="hero-text">Kayak, paddle, surf ou raquette : choisis ton terrain de jeu et réserve ton matériel pour la demi-journée ou la journée.</p>
           <div className="hero-actions"><a className="button button-primary" href="#reserver">Trouver mon créneau <ChevronRight aria-hidden="true" /></a><a className="text-link" href="#equipements">Voir les équipements</a></div>
           <div className="hero-notes" aria-label="Les avantages de la location"><span><Check aria-hidden="true" /> Matériel vérifié</span><span><Check aria-hidden="true" /> Retrait rapide</span><span><Check aria-hidden="true" /> Paiement en magasin</span></div>
