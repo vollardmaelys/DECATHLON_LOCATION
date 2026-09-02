@@ -62,7 +62,8 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notice, setNotice] = useState('');
   const [confirmation, setConfirmation] = useState(false);
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
 
   const selectedEquipment = useMemo(() => equipment.find((item) => item.id === selectedId) ?? equipment[0], [selectedId]);
@@ -101,14 +102,14 @@ export default function Home() {
 
   async function reserveSlot() {
     if (!selectedTime) return setNotice('Choisis d’abord un créneau de retrait.');
-    if (!name.trim() || !email.trim()) return setNotice('Indique ton nom et ton adresse e-mail pour confirmer.');
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) return setNotice('Indique ton prénom, ton nom et ton adresse e-mail pour confirmer.');
     setIsSubmitting(true);
     setNotice('');
     try {
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ equipmentId: selectedId, date: selectedDate, time: selectedTime, duration: selectedDuration, name, email }),
+        body: JSON.stringify({ equipmentId: selectedId, date: selectedDate, time: selectedTime, duration: selectedDuration, name: `${firstName.trim()} ${lastName.trim()}`, email }),
       });
       const data = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -168,16 +169,16 @@ export default function Home() {
           <div className="booking-intro"><p className="eyebrow">Réservation en ligne</p><h2>Un créneau, et c’est parti.</h2><p>Choisis ton matériel, la date et l’horaire de retrait. Les créneaux déjà réservés se verrouillent automatiquement.</p><div className="booking-tip"><ShieldCheck aria-hidden="true" /> Ton matériel est mis de côté dès la confirmation.</div></div>
           <div className="booking-card" aria-live="polite">
             {confirmation ? (
-              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
+              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><div className="confirmation-hours"><Clock3 aria-hidden="true" /><div><strong>Pour récupérer ton matériel</strong><span>Fermeture à 18h du lundi au samedi, et à 13h le dimanche.</span></div></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
             ) : (
               <>
                 <div className="booking-card-top"><div><span className="booking-step">01</span><h3>Ta location</h3></div><span className="booking-price">{displayedPrice}<small> / {selectedDurationLabel.toLowerCase()}</small></span></div>
                 <label className="field-label" htmlFor="equipment">Matériel</label>
-                <select id="equipment" className="select-control" value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>{equipment.map((item) => <option key={item.id} value={item.id}>{item.name} — demi-journée {item.price} · journée {item.dayPrice}</option>)}</select>
-                <div className="field-pair"><div><label className="field-label" htmlFor="date">Date de retrait</label><div className="field-with-icon"><CalendarDays aria-hidden="true" /><input id="date" type="date" min={dateInDays(0)} value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></div></div><div><span className="field-label">Formule et tarif</span><div className="duration-options" role="group" aria-label="Durée de location">{rentalDurations.map((duration) => { const durationPrice = duration.id === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price; return <button key={duration.id} type="button" className={`duration-option ${selectedDuration === duration.id ? 'duration-option-selected' : ''}`} aria-pressed={selectedDuration === duration.id} onClick={() => { setSelectedDuration(duration.id); setSelectedTime(null); }}><Clock3 aria-hidden="true" /><span className="duration-option-copy"><span>{duration.label}</span><small>{duration.detail}</small></span><strong>{durationPrice}</strong></button>; })}</div></div></div>
+                <select id="equipment" className="select-control" value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>{equipment.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+                <div className="field-pair"><div><label className="field-label" htmlFor="date">Date de retrait</label><div className="field-with-icon"><CalendarDays aria-hidden="true" /><input id="date" type="date" min={dateInDays(0)} value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></div></div><div><span className="field-label">Choisis ton tarif</span><div className="duration-options" role="group" aria-label="Durée de location">{rentalDurations.map((duration) => { const durationPrice = duration.id === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price; return <button key={duration.id} type="button" className={`duration-option ${selectedDuration === duration.id ? 'duration-option-selected' : ''}`} aria-pressed={selectedDuration === duration.id} onClick={() => { setSelectedDuration(duration.id); setSelectedTime(null); }}><Clock3 aria-hidden="true" /><span className="duration-option-copy"><span>{duration.label}</span><small>{duration.detail}</small></span><strong>{durationPrice}</strong></button>; })}</div></div></div>
                 <div className="slot-header"><span className="field-label">Heure de retrait</span><small>{availabilityLabel}</small></div>
                 <div className="slot-grid">{timeSlots.map((time) => { const unavailable = bookedSlots.includes(time) || fullDayUnavailable; return <button key={time} type="button" className={`slot ${selectedTime === time ? 'slot-selected' : ''}`} disabled={isLoadingSlots || unavailable} onClick={() => setSelectedTime(time)}>{time}<small>{unavailable ? 'Indisponible' : selectedDuration === 'day' ? 'Retrait' : 'Disponible'}</small></button>; })}</div>
-                <div className="customer-fields"><div><label className="field-label" htmlFor="name">Ton nom</label><input id="name" className="text-control" value={name} onChange={(event) => setName(event.target.value)} placeholder="Prénom et nom" autoComplete="name" /></div><div><label className="field-label" htmlFor="email">Ton e-mail</label><div className="field-with-icon"><Mail aria-hidden="true" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="toi@email.com" autoComplete="email" /></div></div></div>
+                <div className="customer-fields"><div><label className="field-label" htmlFor="first-name">Ton prénom</label><input id="first-name" className="text-control" value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Prénom" autoComplete="given-name" /></div><div><label className="field-label" htmlFor="last-name">Ton nom</label><input id="last-name" className="text-control" value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Nom" autoComplete="family-name" /></div><div className="customer-email"><label className="field-label" htmlFor="email">Ton e-mail</label><div className="field-with-icon"><Mail aria-hidden="true" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="toi@email.com" autoComplete="email" /></div></div></div>
                 {notice && <p className="form-notice" role="status">{notice}</p>}
                 <button className="button button-primary confirm-button" type="button" onClick={reserveSlot} disabled={isSubmitting || isLoadingSlots}>{isSubmitting ? 'Confirmation…' : 'Valider ma réservation'} <ChevronRight aria-hidden="true" /></button><p className="payment-note">Aucun paiement en ligne. Tu règles ta location lors du retrait.</p>
               </>
