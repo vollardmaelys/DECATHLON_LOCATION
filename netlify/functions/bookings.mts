@@ -2,12 +2,10 @@ import { getDatabase } from '@netlify/database';
 import type { Config } from '@netlify/functions';
 
 const equipmentIds = new Set([
-  'kayak-duo',
-  'paddle-11',
-  'surf-mousse',
-  'tennis-racket',
-  'padel-racket',
-  'beach-tennis',
+  'tennis-tr500',
+  'padel-hybrid-metal',
+  'surf-mousse-86',
+  'vae-riverside-500e',
 ]);
 
 const timeSlots = new Set(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']);
