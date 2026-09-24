@@ -4,13 +4,19 @@ import {
   ArrowLeft,
   CalendarDays,
   Check,
+  ChevronDown,
   ChevronRight,
   Clock3,
+  CreditCard,
   ExternalLink,
+  FileCheck2,
   Mail,
   MapPin,
+  PackageCheck,
+  RotateCcw,
   ShieldCheck,
   Sparkles,
+  UserRoundCheck,
   Waves,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -22,6 +28,33 @@ const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00'
 const rentalDurations: { id: RentalDuration; label: string; detail: string }[] = [
   { id: 'half-day', label: 'Demi-journée', detail: 'Matin ou après-midi' },
   { id: 'day', label: 'Journée', detail: 'Jusqu’à la fermeture' },
+];
+
+const faqItems = [
+  {
+    question: 'Comment fonctionne la location à Tahiti ?',
+    answer: 'Tu choisis ton matériel, ta date, ton tarif et ton heure de retrait. Une fois la réservation confirmée, ton matériel est mis de côté à Decathlon Tahiti, à Punaauia.',
+  },
+  {
+    question: 'Est-ce que je paie en ligne ?',
+    answer: 'Non. La réservation en ligne est sans paiement. Tu règles ta location directement en magasin au moment du retrait.',
+  },
+  {
+    question: 'Que dois-je apporter lors du retrait ?',
+    answer: 'Présente ta confirmation de réservation et une pièce d’identité. Une caution peut être demandée en magasin selon le matériel loué et les conditions appliquées le jour du retrait.',
+  },
+  {
+    question: 'Puis-je modifier ou annuler ma réservation ?',
+    answer: 'Oui, contacte le magasin le plus tôt possible afin de libérer le créneau ou de vérifier les alternatives disponibles.',
+  },
+  {
+    question: 'À quelle heure dois-je restituer le matériel ?',
+    answer: 'Le retour se fait à l’horaire indiqué sur ton contrat de location et avant la fermeture du magasin : 18 h du lundi au samedi et 13 h le dimanche.',
+  },
+  {
+    question: 'Que se passe-t-il en cas de dommage ?',
+    answer: 'Signale tout incident dès que possible. L’état du matériel est vérifié avec l’équipe au retrait et au retour ; les modalités applicables sont celles du contrat signé en magasin.',
+  },
 ];
 
 function dateInDays(days: number) {
@@ -48,10 +81,12 @@ function requestedEquipmentId() {
 function SiteHeader({ details = false }: { details?: boolean }) {
   return (
     <header className="site-header">
-      <a className="brand" href="/" aria-label="Decathlon Tahiti Location, accueil"><span>DECATHLON</span><small>TAHITI · LOCATION</small></a>
+      <a className="brand" href="/" aria-label="Decathlon Tahiti Location, accueil"><img className="brand-logo" src="/decathlon-logo.svg" alt="Decathlon" /><small>TAHITI · LOCATION</small></a>
       <nav aria-label="Navigation principale">
         <a href="/#equipements">Équipements</a>
         <a href="/#comment">Comment ça marche</a>
+        <a href="/#regles">Règles</a>
+        <a href="/#faq">FAQ</a>
         <a href="/#magasin">Le magasin</a>
       </nav>
       <a className="header-cta" href={details ? '/#reserver' : '#reserver'}>Réserver <ChevronRight aria-hidden="true" /></a>
@@ -146,7 +181,35 @@ function ProductDetails({ product }: { product: Equipment }) {
 }
 
 function Footer() {
-  return <footer><span>DECATHLON TAHITI · LOCATION</span><span>Le sport, accessible à tous.</span><span>© 2026</span></footer>;
+  return <footer>
+    <div className="footer-brand"><img src="/decathlon-logo.svg" alt="Decathlon" /><span>TAHITI · LOCATION</span></div>
+    <div className="footer-links"><a href="/#comment">Fonctionnement</a><a href="/#regles">Règles de location</a><a href="/#faq">FAQ</a></div>
+    <span>© 2026 · Le sport, accessible à tous.</span>
+  </footer>;
+}
+
+function RentalRules() {
+  const rules = [
+    { icon: FileCheck2, title: 'Réserver', text: 'La réservation en ligne met ton matériel de côté. Elle est confirmée sous réserve de disponibilité réelle au moment du retrait.' },
+    { icon: UserRoundCheck, title: 'Retirer', text: 'Passe au magasin Decathlon Tahiti avec ta confirmation et une pièce d’identité. Le contrat de location est finalisé sur place.' },
+    { icon: CreditCard, title: 'Régler', text: 'Le paiement se fait en magasin, en francs Pacifique. Une caution peut être demandée selon le produit et les conditions du magasin.' },
+    { icon: RotateCcw, title: 'Restituer', text: 'Rapporte le matériel propre et complet, à la date et à l’heure prévues sur le contrat, avant la fermeture du magasin.' },
+  ];
+
+  return <section id="regles" className="rules-section">
+    <div className="section-shell">
+      <div className="rules-heading"><div><p className="eyebrow">Location à Tahiti</p><h2>Les règles,<br /><em>simplement.</em></h2></div><p>Un parcours inspiré de la location Decathlon, adapté à un retrait et un retour directement à Punaauia.</p></div>
+      <div className="rules-grid">{rules.map(({ icon: Icon, title, text }, index) => <article className="rule-card" key={title}><span>0{index + 1}</span><Icon aria-hidden="true" /><h3>{title}</h3><p>{text}</p></article>)}</div>
+      <div className="rules-notice"><ShieldCheck aria-hidden="true" /><p><strong>À retenir :</strong> ces informations préparent ta location. Les conditions contractuelles définitives, l’état du matériel et les éventuelles garanties sont confirmés avec l’équipe lors du retrait.</p></div>
+    </div>
+  </section>;
+}
+
+function Faq() {
+  return <section id="faq" className="faq-section section-shell">
+    <div className="faq-heading"><p className="eyebrow">Aide & support</p><h2>Toutes les réponses<br /><em>à tes questions.</em></h2><p>Besoin d’un renseignement avant de réserver ? Les réponses essentielles sont ici.</p></div>
+    <div className="faq-list">{faqItems.map((item, index) => <details key={item.question} open={index === 0}><summary>{item.question}<ChevronDown aria-hidden="true" /></summary><p>{item.answer}</p></details>)}</div>
+  </section>;
 }
 
 function Home() {
@@ -159,6 +222,7 @@ function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notice, setNotice] = useState('');
   const [confirmation, setConfirmation] = useState(false);
+  const [acceptedRules, setAcceptedRules] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -200,6 +264,7 @@ function Home() {
   async function reserveSlot() {
     if (!selectedTime) return setNotice('Choisis d’abord un créneau de retrait.');
     if (!firstName.trim() || !lastName.trim() || !email.trim()) return setNotice('Indique ton prénom, ton nom et ton adresse e-mail pour confirmer.');
+    if (!acceptedRules) return setNotice('Confirme que tu as lu les règles de location avant de valider.');
     setIsSubmitting(true);
     setNotice('');
     try {
@@ -248,7 +313,7 @@ function Home() {
           <div className="booking-intro"><p className="eyebrow">Réservation en ligne</p><h2>Un créneau, et c’est parti.</h2><p>Choisis ton matériel, la date et l’horaire de retrait. Les créneaux déjà réservés se verrouillent automatiquement.</p><div className="booking-tip"><ShieldCheck aria-hidden="true" /> Ton matériel est mis de côté dès la confirmation.</div></div>
           <div className="booking-card" aria-live="polite">
             {confirmation ? (
-              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><div className="confirmation-hours"><Clock3 aria-hidden="true" /><div><strong>Pour récupérer ton matériel</strong><span>Fermeture à 18h du lundi au samedi, et à 13h le dimanche.</span></div></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
+              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><div className="confirmation-hours"><Clock3 aria-hidden="true" /><div><strong>Pour récupérer ton matériel</strong><span>Présente ta confirmation et une pièce d’identité. Fermeture à 18h du lundi au samedi, et à 13h le dimanche.</span></div></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
             ) : (
               <>
                 <div className="booking-card-top"><div><span className="booking-step">01</span><h3>Ta location</h3></div><span className="booking-price">{displayedPrice}<small> / {selectedDurationLabel.toLowerCase()}</small></span></div>
@@ -259,6 +324,7 @@ function Home() {
                 <div className="slot-header"><span className="field-label">Heure de retrait</span><small>{availabilityLabel}</small></div>
                 <div className="slot-grid">{timeSlots.map((time) => { const unavailable = bookedSlots.includes(time) || fullDayUnavailable; return <button key={time} type="button" className={`slot ${selectedTime === time ? 'slot-selected' : ''}`} disabled={isLoadingSlots || unavailable} onClick={() => setSelectedTime(time)}>{time}<small>{unavailable ? 'Indisponible' : 'Disponible'}</small></button>; })}</div>
                 <div className="customer-fields"><div><label className="field-label" htmlFor="first-name">Ton prénom</label><input id="first-name" className="text-control" value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Prénom" autoComplete="given-name" /></div><div><label className="field-label" htmlFor="last-name">Ton nom</label><input id="last-name" className="text-control" value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Nom" autoComplete="family-name" /></div><div className="customer-email"><label className="field-label" htmlFor="email">Ton e-mail</label><div className="field-with-icon"><Mail aria-hidden="true" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="toi@email.com" autoComplete="email" /></div></div></div>
+                <label className="rental-consent"><input type="checkbox" checked={acceptedRules} onChange={(event) => setAcceptedRules(event.target.checked)} /><span>J’ai lu les <a href="#regles">règles de location à Tahiti</a> et je comprends que le contrat est finalisé en magasin lors du retrait.</span></label>
                 {notice && <p className="form-notice" role="status">{notice}</p>}
                 <button className="button button-primary confirm-button" type="button" onClick={reserveSlot} disabled={isSubmitting || isLoadingSlots}>{isSubmitting ? 'Confirmation…' : 'Valider ma réservation'} <ChevronRight aria-hidden="true" /></button><p className="payment-note">Aucun paiement en ligne. Tu règles ta location lors du retrait.</p>
               </>
@@ -267,7 +333,9 @@ function Home() {
         </div>
       </section>
 
-      <section id="comment" className="section-shell steps-section"><div className="section-heading compact-heading"><div><p className="eyebrow">Rien de compliqué</p><h2>Prêt en trois mouvements.</h2></div></div><div className="steps"><article><span>01</span><CalendarDays aria-hidden="true" /><h3>Tu choisis</h3><p>Ton matériel, ton tarif et le créneau qui te conviennent.</p></article><article><span>02</span><MapPin aria-hidden="true" /><h3>Tu retires</h3><p>On prépare ton équipement avant ton arrivée au magasin.</p></article><article><span>03</span><Waves aria-hidden="true" /><h3>Tu profites</h3><p>Quelques conseils, le bon matériel, et place à la session.</p></article></div></section>
+      <section id="comment" className="section-shell steps-section"><div className="section-heading compact-heading"><div><p className="eyebrow">Comment ça marche</p><h2>Quatre étapes,<br /><em>zéro détour.</em></h2></div><p>Le parcours Decathlon Location, pensé ici pour un retrait simple et rapide à Punaauia.</p></div><div className="steps"><article><span>01</span><CalendarDays aria-hidden="true" /><h3>Tu choisis</h3><p>Ton matériel, ton tarif, la date et le créneau qui te conviennent.</p></article><article><span>02</span><FileCheck2 aria-hidden="true" /><h3>Tu réserves</h3><p>Ton équipement est mis de côté dès la confirmation de ton créneau.</p></article><article><span>03</span><PackageCheck aria-hidden="true" /><h3>Tu récupères</h3><p>Tu passes au magasin pour vérifier, récupérer et régler ta location.</p></article><article><span>04</span><Waves aria-hidden="true" /><h3>Tu profites</h3><p>Après ta session, tu restitues le matériel complet à l’heure prévue.</p></article></div></section>
+      <RentalRules />
+      <Faq />
       <section id="magasin" className="store-section"><div className="section-shell store-layout"><div><p className="eyebrow">Ton point de retrait</p><h2>On se retrouve<br /><em>à Punaauia.</em></h2></div><div className="store-details"><MapPin aria-hidden="true" /><div><strong>Decathlon Tahiti</strong><p>Côté Phenix, Punaauia<br />Lun–ven 8h30–18h · sam 8h–18h · dim 8h–13h</p></div><a href="#reserver" aria-label="Réserver un créneau"><ChevronRight aria-hidden="true" /></a></div></div></section>
       <Footer />
     </main>
