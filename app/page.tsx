@@ -25,6 +25,7 @@ import { equipment, getEquipment, type Equipment } from '../lib/products';
 type RentalDuration = 'half-day' | 'day';
 
 const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+const dayOnlyEquipmentId = 'vae-riverside-500e';
 const rentalDurations: { id: RentalDuration; label: string; detail: string }[] = [
   { id: 'half-day', label: 'Demi-journée', detail: 'Matin ou après-midi' },
   { id: 'day', label: 'Journée', detail: 'Jusqu’à la fermeture' },
@@ -40,8 +41,12 @@ const faqItems = [
     answer: 'Non. La réservation en ligne est sans paiement. Tu règles ta location directement en magasin au moment du retrait.',
   },
   {
+    question: 'Comment fonctionne la caution ?',
+    answer: 'Selon la nature du matériel, une caution peut être demandée lors du retrait. Elle est distincte du prix de location. Son montant et ses modalités te sont indiqués avant la signature du contrat, puis elle est restituée après le retour du matériel et le règlement des éventuelles sommes dues.',
+  },
+  {
     question: 'Que dois-je apporter lors du retrait ?',
-    answer: 'Présente ta confirmation de réservation et une pièce d’identité. Une caution peut être demandée en magasin selon le matériel loué et les conditions appliquées le jour du retrait.',
+    answer: 'Présente ta confirmation de réservation et une pièce d’identité. Prévois également le règlement de ta location et, si elle est demandée pour ton matériel, la caution indiquée par l’équipe.',
   },
   {
     question: 'Puis-je modifier ou annuler ma réservation ?',
@@ -53,7 +58,7 @@ const faqItems = [
   },
   {
     question: 'Que se passe-t-il en cas de dommage ?',
-    answer: 'Signale tout incident dès que possible. L’état du matériel est vérifié avec l’équipe au retrait et au retour ; les modalités applicables sont celles du contrat signé en magasin.',
+    answer: 'Signale tout incident dès que possible. L’état du matériel est vérifié avec l’équipe au retrait et au retour. Des frais de nettoyage, de remise en état ou de remplacement peuvent s’appliquer si le matériel revient sale, incomplet ou endommagé, selon le contrat signé en magasin.',
   },
 ];
 
@@ -95,6 +100,7 @@ function SiteHeader({ details = false }: { details?: boolean }) {
 }
 
 function EquipmentCard({ item }: { item: Equipment }) {
+  const isDayOnly = item.id === dayOnlyEquipmentId;
   return (
     <a className="equipment-card" href={`/produits/${item.id}`} aria-label={`Voir la fiche de ${item.name}`}>
       <div className="equipment-visual">
@@ -107,7 +113,7 @@ function EquipmentCard({ item }: { item: Equipment }) {
         <p className="equipment-detail">{item.detail}</p>
         <div className="equipment-bottom">
           <div className="equipment-price-list" aria-label={`Tarifs de location pour ${item.name}`}>
-            <span><strong>{item.price}</strong><small>Demi-journée</small></span>
+            {!isDayOnly && <span><strong>{item.price}</strong><small>Demi-journée</small></span>}
             <span><strong>{item.dayPrice}</strong><small>Journée</small></span>
           </div>
           <span className="equipment-detail-link">Détails <ChevronRight aria-hidden="true" /></span>
@@ -118,6 +124,7 @@ function EquipmentCard({ item }: { item: Equipment }) {
 }
 
 function ProductDetails({ product }: { product: Equipment }) {
+  const isDayOnly = product.id === dayOnlyEquipmentId;
   return (
     <main className="product-page">
       <SiteHeader details />
@@ -135,11 +142,11 @@ function ProductDetails({ product }: { product: Equipment }) {
           <p className="product-intro">{product.intro}</p>
           <div className="product-best-for"><Check aria-hidden="true" /><span><strong>Idéal pour</strong>{product.bestFor}</span></div>
           <div className="product-price-panel">
-            <div><small>Demi-journée</small><strong>{product.price}</strong></div>
+            {!isDayOnly && <div><small>Demi-journée</small><strong>{product.price}</strong></div>}
             <div><small>Journée</small><strong>{product.dayPrice}</strong></div>
           </div>
           <a className="button button-primary product-book-button" href={`/?produit=${product.id}#reserver`}>Réserver ce modèle <ChevronRight aria-hidden="true" /></a>
-          <p className="product-payment-note">Paiement en magasin lors du retrait.</p>
+          <p className="product-payment-note">{isDayOnly ? 'Vélo VAE disponible uniquement à la journée complète. ' : ''}Paiement en magasin lors du retrait.</p>
         </div>
       </section>
 
@@ -192,15 +199,31 @@ function RentalRules() {
   const rules = [
     { icon: FileCheck2, title: 'Réserver', text: 'La réservation en ligne met ton matériel de côté. Elle est confirmée sous réserve de disponibilité réelle au moment du retrait.' },
     { icon: UserRoundCheck, title: 'Retirer', text: 'Passe au magasin Decathlon Tahiti avec ta confirmation et une pièce d’identité. Le contrat de location est finalisé sur place.' },
-    { icon: CreditCard, title: 'Régler', text: 'Le paiement se fait en magasin, en francs Pacifique. Une caution peut être demandée selon le produit et les conditions du magasin.' },
+    { icon: CreditCard, title: 'Régler', text: 'Le paiement se fait en magasin, en francs Pacifique. Le prix de location et l’éventuelle caution sont bien séparés.' },
     { icon: RotateCcw, title: 'Restituer', text: 'Rapporte le matériel propre et complet, à la date et à l’heure prévues sur le contrat, avant la fermeture du magasin.' },
+  ];
+  const deposits = [
+    { product: 'Raquette de tennis TR500', amount: '7 500 F', detail: 'Raquette et accessoires remis' },
+    { product: 'Raquette de padel Hybrid Metal', amount: '10 000 F', detail: 'Raquette, dragonne et accessoires remis' },
+    { product: 'Planche de surf mousse 8’6', amount: '25 000 F', detail: 'Planche, leash et ailerons' },
+    { product: 'Vélo VAE Riverside 500 E', amount: '100 000 F', detail: 'Vélo, batterie, casque et antivol' },
   ];
 
   return <section id="regles" className="rules-section">
     <div className="section-shell">
-      <div className="rules-heading"><div><p className="eyebrow">Location à Tahiti</p><h2>Les règles,<br /><em>simplement.</em></h2></div><p>Un parcours inspiré de la location Decathlon, adapté à un retrait et un retour directement à Punaauia.</p></div>
+      <div className="rules-heading"><div><p className="eyebrow">Location à Tahiti</p><h2>Le règlement,<br /><em>simplement.</em></h2></div><p>Un parcours inspiré de la location Decathlon, adapté à un retrait et un retour directement à Punaauia.</p></div>
       <div className="rules-grid">{rules.map(({ icon: Icon, title, text }, index) => <article className="rule-card" key={title}><span>0{index + 1}</span><Icon aria-hidden="true" /><h3>{title}</h3><p>{text}</p></article>)}</div>
-      <div className="rules-notice"><ShieldCheck aria-hidden="true" /><p><strong>À retenir :</strong> ces informations préparent ta location. Les conditions contractuelles définitives, l’état du matériel et les éventuelles garanties sont confirmés avec l’équipe lors du retrait.</p></div>
+      <aside className="deposit-callout" aria-label="Informations sur la caution">
+        <div className="deposit-icon"><ShieldCheck aria-hidden="true" /></div>
+        <div className="deposit-copy"><p className="eyebrow">Article 1 · Caution / dépôt de garantie</p><h3>Une garantie claire pour chaque matériel.</h3><p>La caution est demandée lors du retrait, avant la signature du contrat. Elle est distincte du prix de location et sert à couvrir les éventuels montants dus après le retour.</p></div>
+        <ul><li><Check aria-hidden="true" /> Calculée à partir du prix de remplacement à Tahiti, accessoires inclus, avec un coefficient de risque de 60 à 80 %.</li><li><Check aria-hidden="true" /> Arrondie au 500 F ou au 1 000 F supérieur pour rester facile à comprendre.</li><li><Check aria-hidden="true" /> Restituée au plus tard dans les deux semaines suivant la fin du contrat, après déduction des sommes éventuellement dues.</li></ul>
+      </aside>
+      <section className="deposit-scale" aria-labelledby="deposit-scale-title">
+        <div className="deposit-scale-heading"><div><p className="eyebrow">Article 2 · Barème de caution</p><h3 id="deposit-scale-title">Le montant est connu avant de louer.</h3></div><p>Le barème est appliqué par matériel loué. Si plusieurs équipements sont loués, les cautions correspondantes s’additionnent.</p></div>
+        <div className="deposit-table-wrap"><table><caption>Barème de caution applicable au retrait</caption><thead><tr><th scope="col">Matériel</th><th scope="col">Caution</th><th scope="col">Éléments couverts</th></tr></thead><tbody>{deposits.map((deposit) => <tr key={deposit.product}><th scope="row">{deposit.product}</th><td><strong>{deposit.amount}</strong></td><td>{deposit.detail}</td></tr>)}</tbody></table></div>
+        <p className="deposit-scale-note"><ShieldCheck aria-hidden="true" /><span><strong>Article 3 · Retour et restitution :</strong> l’équipe vérifie le matériel avec toi au retour. La caution est restituée après contrôle ; une retenue justifiée peut s’appliquer en cas de matériel non rendu, sale, incomplet ou endommagé.</span></p>
+      </section>
+      <div className="rules-notice"><ShieldCheck aria-hidden="true" /><p><strong>À retenir :</strong> ces informations préparent ta location. Les conditions contractuelles définitives, l’état du matériel, le montant de l’éventuelle caution et ses modalités sont confirmés avec l’équipe lors du retrait.</p></div>
     </div>
   </section>;
 }
@@ -228,6 +251,8 @@ function Home() {
   const [email, setEmail] = useState('');
 
   const selectedEquipment = useMemo(() => getEquipment(selectedId) ?? equipment[0], [selectedId]);
+  const isDayOnlyEquipment = selectedEquipment.id === dayOnlyEquipmentId;
+  const selectableDurations = isDayOnlyEquipment ? rentalDurations.filter((duration) => duration.id === 'day') : rentalDurations;
   const selectedDurationLabel = rentalDurations.find((duration) => duration.id === selectedDuration)?.label ?? 'Demi-journée';
   const displayedPrice = selectedDuration === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price;
   const fullDayUnavailable = selectedDuration === 'day' && bookedSlots.length > 0;
@@ -239,6 +264,13 @@ function Home() {
     : selectedDuration === 'day'
       ? (fullDayUnavailable ? 'Journée indisponible' : 'Journée complète disponible')
       : `${availableSlotCount} créneau${availableSlotCount > 1 ? 'x' : ''} disponible${availableSlotCount > 1 ? 's' : ''}`;
+
+  useEffect(() => {
+    if (isDayOnlyEquipment && selectedDuration !== 'day') {
+      setSelectedDuration('day');
+      setSelectedTime(null);
+    }
+  }, [isDayOnlyEquipment, selectedDuration]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -296,7 +328,7 @@ function Home() {
         <div className="hero-copy">
           <p className="eyebrow"><Sparkles aria-hidden="true" /> Tout le matériel, sans contrainte</p>
           <h1>Testez, <em>approuvez, achetez.</em></h1>
-          <p className="hero-text">Tennis, padel, surf ou vélo électrique : choisis ton matériel et réserve-le pour la demi-journée ou la journée.</p>
+          <p className="hero-text">Tennis, padel, surf ou vélo électrique : choisis ton matériel et réserve-le pour la demi-journée ou la journée complète, selon le produit.</p>
           <div className="hero-actions"><a className="button button-primary" href="#reserver">Trouver mon créneau <ChevronRight aria-hidden="true" /></a><a className="text-link" href="#equipements">Voir les équipements</a></div>
           <div className="hero-notes" aria-label="Les avantages de la location"><span><Check aria-hidden="true" /> Matériel vérifié</span><span><Check aria-hidden="true" /> Retrait rapide</span><span><Check aria-hidden="true" /> Paiement en magasin</span></div>
         </div>
@@ -313,20 +345,20 @@ function Home() {
           <div className="booking-intro"><p className="eyebrow">Réservation en ligne</p><h2>Un créneau, et c’est parti.</h2><p>Choisis ton matériel, la date et l’horaire de retrait. Les créneaux déjà réservés se verrouillent automatiquement.</p><div className="booking-tip"><ShieldCheck aria-hidden="true" /> Ton matériel est mis de côté dès la confirmation.</div></div>
           <div className="booking-card" aria-live="polite">
             {confirmation ? (
-              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><div className="confirmation-hours"><Clock3 aria-hidden="true" /><div><strong>Pour récupérer ton matériel</strong><span>Présente ta confirmation et une pièce d’identité. Fermeture à 18h du lundi au samedi, et à 13h le dimanche.</span></div></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
+              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><div className="confirmation-hours"><Clock3 aria-hidden="true" /><div><strong>Pour récupérer ton matériel</strong><span>Présente ta confirmation et une pièce d’identité. Le prix de location et l’éventuelle caution sont finalisés au retrait. Fermeture à 18h du lundi au samedi, et à 13h le dimanche.</span></div></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
             ) : (
               <>
                 <div className="booking-card-top"><div><span className="booking-step">01</span><h3>Ta location</h3></div><span className="booking-price">{displayedPrice}<small> / {selectedDurationLabel.toLowerCase()}</small></span></div>
                 <label className="field-label" htmlFor="equipment">Matériel</label>
                 <select id="equipment" className="select-control" value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>{equipment.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
                 <a className="selected-product-link" href={`/produits/${selectedEquipment.id}`}>Voir les caractéristiques de ce modèle <ChevronRight aria-hidden="true" /></a>
-                <div className="field-pair"><div><label className="field-label" htmlFor="date">Date de retrait</label><div className="field-with-icon"><CalendarDays aria-hidden="true" /><input id="date" type="date" min={dateInDays(0)} value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></div></div><div><span className="field-label">Choisis ton tarif</span><div className="duration-options" role="group" aria-label="Durée de location">{rentalDurations.map((duration) => { const durationPrice = duration.id === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price; return <button key={duration.id} type="button" className={`duration-option ${selectedDuration === duration.id ? 'duration-option-selected' : ''}`} aria-pressed={selectedDuration === duration.id} onClick={() => { setSelectedDuration(duration.id); setSelectedTime(null); }}><Clock3 aria-hidden="true" /><span className="duration-option-copy"><span>{duration.label}</span><small>{duration.detail}</small></span><strong>{durationPrice}</strong></button>; })}</div></div></div>
+                <div className="field-pair"><div><label className="field-label" htmlFor="date">Date de retrait</label><div className="field-with-icon"><CalendarDays aria-hidden="true" /><input id="date" type="date" min={dateInDays(0)} value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></div></div><div><span className="field-label">Choisis ton tarif</span><div className="duration-options" role="group" aria-label="Durée de location">{selectableDurations.map((duration) => { const durationPrice = duration.id === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price; return <button key={duration.id} type="button" className={`duration-option ${selectedDuration === duration.id ? 'duration-option-selected' : ''}`} aria-pressed={selectedDuration === duration.id} onClick={() => { setSelectedDuration(duration.id); setSelectedTime(null); }}><Clock3 aria-hidden="true" /><span className="duration-option-copy"><span>{duration.label}</span><small>{duration.detail}</small></span><strong>{durationPrice}</strong></button>; })}</div>{isDayOnlyEquipment && <p className="duration-note">Le vélo VAE est proposé uniquement à la journée complète.</p>}</div></div>
                 <div className="slot-header"><span className="field-label">Heure de retrait</span><small>{availabilityLabel}</small></div>
                 <div className="slot-grid">{timeSlots.map((time) => { const unavailable = bookedSlots.includes(time) || fullDayUnavailable; return <button key={time} type="button" className={`slot ${selectedTime === time ? 'slot-selected' : ''}`} disabled={isLoadingSlots || unavailable} onClick={() => setSelectedTime(time)}>{time}<small>{unavailable ? 'Indisponible' : 'Disponible'}</small></button>; })}</div>
                 <div className="customer-fields"><div><label className="field-label" htmlFor="first-name">Ton prénom</label><input id="first-name" className="text-control" value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Prénom" autoComplete="given-name" /></div><div><label className="field-label" htmlFor="last-name">Ton nom</label><input id="last-name" className="text-control" value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Nom" autoComplete="family-name" /></div><div className="customer-email"><label className="field-label" htmlFor="email">Ton e-mail</label><div className="field-with-icon"><Mail aria-hidden="true" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="toi@email.com" autoComplete="email" /></div></div></div>
-                <label className="rental-consent"><input type="checkbox" checked={acceptedRules} onChange={(event) => setAcceptedRules(event.target.checked)} /><span>J’ai lu les <a href="#regles">règles de location à Tahiti</a> et je comprends que le contrat est finalisé en magasin lors du retrait.</span></label>
+                <label className="rental-consent"><input type="checkbox" checked={acceptedRules} onChange={(event) => setAcceptedRules(event.target.checked)} /><span>J’ai lu les <a href="#regles">règles de location et de caution</a> à Tahiti et je comprends que le contrat est finalisé en magasin lors du retrait.</span></label>
                 {notice && <p className="form-notice" role="status">{notice}</p>}
-                <button className="button button-primary confirm-button" type="button" onClick={reserveSlot} disabled={isSubmitting || isLoadingSlots}>{isSubmitting ? 'Confirmation…' : 'Valider ma réservation'} <ChevronRight aria-hidden="true" /></button><p className="payment-note">Aucun paiement en ligne. Tu règles ta location lors du retrait.</p>
+                <button className="button button-primary confirm-button" type="button" onClick={reserveSlot} disabled={isSubmitting || isLoadingSlots}>{isSubmitting ? 'Confirmation…' : 'Valider ma réservation'} <ChevronRight aria-hidden="true" /></button><p className="payment-note">Aucun paiement en ligne. Tu règles ta location et, si elle est demandée, l’éventuelle caution lors du retrait.</p>
               </>
             )}
           </div>
