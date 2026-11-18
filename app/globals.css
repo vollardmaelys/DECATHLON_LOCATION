@@ -55,3 +55,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 @media (max-width: 800px) { .brand-logo { width: 136px; }.compact-heading, .rules-heading, .faq-section { grid-template-columns: 1fr; gap: 1.5rem; }.rules-section, .faq-section { padding: 4rem 0; }.rules-grid { grid-template-columns: repeat(2, 1fr); }.rule-card { min-height: 220px; }.deposit-callout { grid-template-columns: auto 1fr; }.deposit-callout ul { grid-column: 1 / -1; grid-template-columns: repeat(3, 1fr); }.deposit-scale-heading { align-items: start; flex-direction: column; gap: .65rem; }.faq-heading > p:last-child { max-width: 470px; } footer { grid-template-columns: 1fr; justify-items: start; } footer > span { justify-self: start; }.footer-links { flex-wrap: wrap; } }
 @media (max-width: 480px) { .brand-logo { width: 120px; }.rules-grid { grid-template-columns: 1fr; }.rule-card { min-height: 0; }.rule-card > svg { margin: 1.1rem 0 1rem; }.deposit-callout { grid-template-columns: auto 1fr; gap: 1rem; }.deposit-copy { grid-column: 1 / -1; }.deposit-callout ul { grid-template-columns: 1fr; }.deposit-scale { padding: 1.1rem; }.deposit-table-wrap { margin: 0 -1.1rem; border-right: 0; border-left: 0; }.deposit-scale-note { font-size: .75rem; }.rules-notice { margin-top: 1.2rem; }.faq-list summary { min-height: 60px; padding: 1rem; font-size: .82rem; }.faq-list details p { padding: .95rem 1rem 1.05rem; font-size: .8rem; }.footer-brand img { width: 120px; } }
+.long-stay { display:grid; grid-template-columns:1fr 1fr; gap:48px; padding-block:80px; }
+.long-stay p, .tariff-teaser p, .tariff-title p, .stay-card p { line-height:1.7; }
+.stay-card { background:#f1f6fb; border:1px solid #d9e5ef; border-radius:24px; padding:32px; }
+.stay-card ol { padding-left:24px; line-height:2; }
+.stay-card a { display:inline-flex; align-items:center; gap:8px; color:#0754a6; font-weight:700; }
+.stay-card svg { width:18px; }
+.tariff-teaser { display:flex; align-items:center; justify-content:space-between; gap:32px; padding-block:64px; border-top:1px solid #d9e5ef; }
+.tariff-title { padding-block:48px; }
+.tariff-title h1 { font-size:clamp(36px,5vw,64px); margin:24px 0; }
+.tariff-table { padding-bottom:56px; }
+.tariff-table td a { display:block; color:#0754a6; margin-top:6px; }
+.long-rental-fields { display:grid; gap:16px; margin:20px 0; padding:20px; background:#f1f6fb; border-radius:16px; }
+.duration-options { flex-wrap:wrap; }
+.duration-option { min-width:0; }
+@media(max-width:800px) { .site-header nav { display:flex; grid-column:1 / -1; grid-row:2; overflow-x:auto; gap:20px; padding:12px 0; max-width:100%; white-space:nowrap; font-size:12px; } .site-header .header-cta { grid-column:2; grid-row:1; } .site-header { padding-top:12px; } }
+@media(max-width:760px) { .long-stay { grid-template-columns:1fr; gap:24px; padding-block:48px; } .tariff-teaser { flex-direction:column; align-items:flex-start; } .duration-options { display:grid; grid-template-columns:1fr; } .stay-card { padding:22px; } }

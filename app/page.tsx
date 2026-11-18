@@ -22,19 +22,29 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { equipment, getEquipment, type Equipment } from '../lib/products';
 
-type RentalDuration = 'half-day' | 'day';
+type RentalDuration = 'half-day' | 'day' | 'week' | 'month' | 'custom';
 
 const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 const dayOnlyEquipmentId = 'vae-riverside-500e';
 const rentalDurations: { id: RentalDuration; label: string; detail: string }[] = [
   { id: 'half-day', label: 'Demi-journée', detail: 'Matin ou après-midi' },
   { id: 'day', label: 'Journée', detail: 'Jusqu’à la fermeture' },
+  { id: 'week', label: 'Semaine', detail: '7 jours · sur devis' },
+  { id: 'month', label: 'Mois', detail: '30 jours · sur devis' },
+  { id: 'custom', label: 'À la carte', detail: 'Plusieurs jours · sur devis' },
 ];
 
 const faqItems = [
+  { question: 'Puis-je louer une semaine, un mois ou plusieurs jours ?', answer: 'Oui, sélectionne la formule semaine, mois ou à la carte dans le formulaire. Indique tes dates et ta destination, puis envoie une demande de devis. Le magasin confirme le prix et les disponibilités : cette demande ne bloque pas le matériel et ne constitue pas une réservation confirmée.' },
+  { question: 'Puis-je emmener le vélo à Moorea avec Aremiti ?', answer: 'Indique Moorea dans ta demande et obtiens l’accord du magasin avant de partir. Contacte ensuite Aremiti pour vérifier les conditions d’embarquement du vélo et de sa batterie, les places et le tarif du trajet. Le transport est réservé et payé séparément ; aucun partenariat avec Aremiti n’est annoncé.' },
+  { question: 'Le tarif longue durée est-il un abonnement ?', answer: 'Non : le parcours proposé ici est une location pour des dates convenues, sur devis. Il ne reprend pas les engagements ni le renouvellement automatique des abonnements Decathlon France. Seul le contrat local signé précise les conditions applicables.' },
+  { question: 'Où trouver les tarifs et les montants de caution ?', answer: 'La page Tarifs & règlement regroupe les prix à la session, les formules sur devis et le barème indicatif des cautions. Le prix total et les modalités de dépôt sont confirmés par le magasin avant la signature.' },
+  { question: 'Puis-je prolonger mon séjour ou ma location ?', answer: 'Contacte le magasin avant l’échéance prévue. Une prolongation nécessite son accord, un nouveau prix et la vérification des disponibilités. Elle n’est jamais automatique.' },
+  { question: 'L’entretien, la casse et le vol sont-ils couverts ?', answer: 'Le matériel est contrôlé au retrait et au retour. Pour une longue durée, demande au magasin le programme d’entretien et les garanties du devis. Ne considère pas la casse ou le vol comme assurés sans mention écrite dans ton contrat. En cas d’incident, préviens rapidement le magasin.' },
+
   {
     question: 'Comment fonctionne la location à Tahiti ?',
-    answer: 'Tu choisis ton matériel, ta date, ton tarif et ton heure de retrait. Une fois la réservation confirmée, ton matériel est mis de côté à Decathlon Tahiti, à Punaauia.',
+    answer: 'Choisis ton matériel, tes dates et ton heure de retrait. Pour une location courte, réserve un créneau disponible. Pour plusieurs jours, envoie une demande de devis : le magasin doit confirmer les disponibilités et les conditions. Le retrait et le retour se font à Punaauia.',
   },
   {
     question: 'Est-ce que je paie en ligne ?',
@@ -86,11 +96,11 @@ function requestedEquipmentId() {
 function SiteHeader({ details = false }: { details?: boolean }) {
   return (
     <header className="site-header">
-      <a className="brand" href="/" aria-label="Decathlon Tahiti Location, accueil"><img className="brand-logo" src="/decathlon-logo.svg" alt="Decathlon" /><small>TAHITI · LOCATION</small></a>
+      <a className="brand" href="/" aria-label="Decathlon Tahiti Location, accueil"><img className="brand-logo" src="/decathlon-logo-fourni.png" alt="Decathlon" /><small>TAHITI · LOCATION</small></a>
       <nav aria-label="Navigation principale">
         <a href="/#equipements">Équipements</a>
         <a href="/#comment">Comment ça marche</a>
-        <a href="/#regles">Règles</a>
+        <a href="/tarifs-reglement">Tarifs & règlement</a><a href="/#longue-duree">Longue durée</a>
         <a href="/#faq">FAQ</a>
         <a href="/#magasin">Le magasin</a>
       </nav>
@@ -146,7 +156,7 @@ function ProductDetails({ product }: { product: Equipment }) {
             <div><small>Journée</small><strong>{product.dayPrice}</strong></div>
           </div>
           <a className="button button-primary product-book-button" href={`/?produit=${product.id}#reserver`}>Réserver ce modèle <ChevronRight aria-hidden="true" /></a>
-          <p className="product-payment-note">{isDayOnly ? 'Vélo VAE disponible uniquement à la journée complète. ' : ''}Paiement en magasin lors du retrait.</p>
+          <p className="product-payment-note">{isDayOnly ? 'Vélo VAE disponible à la journée et en longue durée sur devis. ' : ''}Paiement en magasin lors du retrait.</p>
         </div>
       </section>
 
@@ -189,10 +199,14 @@ function ProductDetails({ product }: { product: Equipment }) {
 
 function Footer() {
   return <footer>
-    <div className="footer-brand"><img src="/decathlon-logo.svg" alt="Decathlon" /><span>TAHITI · LOCATION</span></div>
-    <div className="footer-links"><a href="/#comment">Fonctionnement</a><a href="/#regles">Règles de location</a><a href="/#faq">FAQ</a></div>
+    <div className="footer-brand"><img src="/decathlon-logo-fourni.png" alt="Decathlon" /><span>TAHITI · LOCATION</span></div>
+    <div className="footer-links"><a href="/#comment">Fonctionnement</a><a href="/tarifs-reglement">Tarifs & règlement</a><a href="/#faq">FAQ</a></div>
     <span>© 2026 · Le sport, accessible à tous.</span>
   </footer>;
+}
+
+function TariffTable() {
+  return <section className="section-shell tariff-table"><h2>Choisis ta formule.</h2><p>Prix affichés en francs CFP. Les tarifs longue durée sont établis sur devis, sans paiement en ligne.</p><div className="deposit-table-wrap"><table><caption>Tarifs de location par équipement</caption><thead><tr><th>Équipement</th><th>Demi-journée</th><th>Journée</th><th>Semaine / mois / séjour</th></tr></thead><tbody>{equipment.map(item => <tr key={item.id}><th scope="row"><a href={`/produits/${item.id}`}>{item.name}</a></th><td>{item.id === dayOnlyEquipmentId ? 'Non proposée' : item.price}</td><td>{item.dayPrice}</td><td>Sur devis <a href={`/?produit=${item.id}#reserver`}>Choisir mes dates</a></td></tr>)}</tbody></table></div></section>;
 }
 
 function RentalRules() {
@@ -216,31 +230,38 @@ function RentalRules() {
       <aside className="deposit-callout" aria-label="Informations sur la caution">
         <div className="deposit-icon"><ShieldCheck aria-hidden="true" /></div>
         <div className="deposit-copy"><p className="eyebrow">Article 1 · Caution / dépôt de garantie</p><h3>Une garantie claire pour chaque matériel.</h3><p>La caution est demandée lors du retrait, avant la signature du contrat. Elle est distincte du prix de location et sert à couvrir les éventuels montants dus après le retour.</p></div>
-        <ul><li><Check aria-hidden="true" /> Calculée à partir du prix de remplacement à Tahiti, accessoires inclus, avec un coefficient de risque de 60 à 80 %.</li><li><Check aria-hidden="true" /> Arrondie au 500 F ou au 1 000 F supérieur pour rester facile à comprendre.</li><li><Check aria-hidden="true" /> Restituée au plus tard dans les deux semaines suivant la fin du contrat, après déduction des sommes éventuellement dues.</li></ul>
+        <ul><li><Check aria-hidden="true" /> Le montant et le moyen de dépôt sont confirmés avant la signature du contrat.</li><li><Check aria-hidden="true" /> La caution est une garantie, distincte du prix de location.</li><li><Check aria-hidden="true" /> Les modalités et le délai de restitution sont précisés au retrait.</li></ul>
       </aside>
       <section className="deposit-scale" aria-labelledby="deposit-scale-title">
-        <div className="deposit-scale-heading"><div><p className="eyebrow">Article 2 · Barème de caution</p><h3 id="deposit-scale-title">Le montant est connu avant de louer.</h3></div><p>Le barème est appliqué par matériel loué. Si plusieurs équipements sont loués, les cautions correspondantes s’additionnent.</p></div>
-        <div className="deposit-table-wrap"><table><caption>Barème de caution applicable au retrait</caption><thead><tr><th scope="col">Matériel</th><th scope="col">Caution</th><th scope="col">Éléments couverts</th></tr></thead><tbody>{deposits.map((deposit) => <tr key={deposit.product}><th scope="row">{deposit.product}</th><td><strong>{deposit.amount}</strong></td><td>{deposit.detail}</td></tr>)}</tbody></table></div>
-        <p className="deposit-scale-note"><ShieldCheck aria-hidden="true" /><span><strong>Article 3 · Retour et restitution :</strong> l’équipe vérifie le matériel avec toi au retour. La caution est restituée après contrôle ; une retenue justifiée peut s’appliquer en cas de matériel non rendu, sale, incomplet ou endommagé.</span></p>
+        <div className="deposit-scale-heading"><div><p className="eyebrow">Article 2 · Barème de caution</p><h3 id="deposit-scale-title">Le montant est connu avant de louer.</h3></div><p>Les montants ci-dessous sont ceux du projet et restent à valider par le magasin. La durée ne multiplie pas automatiquement la caution. Le barème est indiqué par matériel loué. Si plusieurs équipements sont loués, les cautions correspondantes s’additionnent.</p></div>
+        <div className="deposit-table-wrap"><table><caption>Barème indicatif de caution · à confirmer au magasin</caption><thead><tr><th scope="col">Matériel</th><th scope="col">Caution</th><th scope="col">Éléments couverts</th></tr></thead><tbody>{deposits.map((deposit) => <tr key={deposit.product}><th scope="row">{deposit.product}</th><td><strong>{deposit.amount}</strong></td><td>{deposit.detail}</td></tr>)}</tbody></table></div>
+        <p className="deposit-scale-note"><ShieldCheck aria-hidden="true" /><span><strong>Article 3 · Retour et restitution :</strong> l’usure normale est distinguée des dommages.  l’équipe vérifie le matériel avec toi au retour. La caution est restituée après contrôle ; une retenue justifiée peut s’appliquer en cas de matériel non rendu, sale, incomplet ou endommagé.</span></p>
       </section>
+      <div className="stay-card"><h3>Article 4 · Longue durée et déplacements entre îles</h3><p>Pour plusieurs jours, une semaine ou un mois, une demande de devis est nécessaire. Le magasin confirme le prix total, le retour, les accessoires, l’entretien et les éventuelles garanties. Il n’y a pas de renouvellement automatique annoncé.</p><p>Un déplacement hors de Tahiti nécessite l’accord préalable du magasin. Le client réserve et règle son transport séparément et vérifie auprès d’Aremiti ou de son transporteur l’acceptation du matériel et de la batterie du VAE. Aucun partenariat ni transport inclus n’est proposé ici.</p><p>Pour prolonger, contacte le magasin avant la date de retour : la prolongation dépend des disponibilités et d’un nouvel accord. En cas de panne, vol ou dommage, préviens l’équipe et suis les démarches du contrat ; aucune assurance casse ou vol n’est présumée incluse.</p></div>
       <div className="rules-notice"><ShieldCheck aria-hidden="true" /><p><strong>À retenir :</strong> ces informations préparent ta location. Les conditions contractuelles définitives, l’état du matériel, le montant de l’éventuelle caution et ses modalités sont confirmés avec l’équipe lors du retrait.</p></div>
     </div>
   </section>;
 }
 
 function Faq() {
+  const [search, setSearch] = useState('');
+  const items = faqItems.filter(item => (item.question + ' ' + item.answer).toLocaleLowerCase('fr').includes(search.toLocaleLowerCase('fr')));
   return <section id="faq" className="faq-section section-shell">
     <div className="faq-heading"><p className="eyebrow">Aide & support</p><h2>Toutes les réponses<br /><em>à tes questions.</em></h2><p>Besoin d’un renseignement avant de réserver ? Les réponses essentielles sont ici.</p></div>
-    <div className="faq-list">{faqItems.map((item, index) => <details key={item.question} open={index === 0}><summary>{item.question}<ChevronDown aria-hidden="true" /></summary><p>{item.answer}</p></details>)}</div>
+    <div className="faq-list"><label className="field-label" htmlFor="faq-search">Rechercher une réponse</label><input id="faq-search" type="search" className="text-control" placeholder="Caution, bateau, prolongation…" value={search} onChange={event => setSearch(event.target.value)} /><p><a className="text-link" href="/tarifs-reglement">Voir les tarifs et le règlement</a></p>{items.length === 0 && <p role="status">Aucune réponse trouvée. Essaie un autre mot ou contacte le magasin.</p>}{items.map((item, index) => <details key={item.question} open={search.length > 0 || index === 0}><summary>{item.question}<ChevronDown aria-hidden="true" /></summary><p>{item.answer}</p></details>)}</div>
   </section>;
 }
 
 function Home() {
   const [selectedId, setSelectedId] = useState(requestedEquipmentId);
   const [selectedDate, setSelectedDate] = useState(() => dateInDays(1));
-  const [selectedDuration, setSelectedDuration] = useState<RentalDuration>('half-day');
+  const [selectedDuration, setSelectedDuration] = useState<RentalDuration>(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('duree') === 'week' ? 'week' : 'half-day');
+  const [returnDate, setReturnDate] = useState(() => dateInDays(8));
+  const [destination, setDestination] = useState('Tahiti');
+  const isLongRental = ['week', 'month', 'custom'].includes(selectedDuration);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [availabilityError, setAvailabilityError] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notice, setNotice] = useState('');
@@ -252,9 +273,10 @@ function Home() {
 
   const selectedEquipment = useMemo(() => getEquipment(selectedId) ?? equipment[0], [selectedId]);
   const isDayOnlyEquipment = selectedEquipment.id === dayOnlyEquipmentId;
-  const selectableDurations = isDayOnlyEquipment ? rentalDurations.filter((duration) => duration.id === 'day') : rentalDurations;
+  const selectableDurations = isDayOnlyEquipment ? rentalDurations.filter((duration) => duration.id !== 'half-day') : rentalDurations;
   const selectedDurationLabel = rentalDurations.find((duration) => duration.id === selectedDuration)?.label ?? 'Demi-journée';
-  const displayedPrice = selectedDuration === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price;
+  const displayedPrice = isLongRental ? 'Sur devis' : selectedDuration === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price;
+  useEffect(() => { if (selectedDuration === 'week' || selectedDuration === 'month') { const date = new Date(selectedDate + 'T12:00:00Z'); date.setUTCDate(date.getUTCDate() + (selectedDuration === 'week' ? 7 : 30)); setReturnDate(date.toISOString().slice(0, 10)); } }, [selectedDuration, selectedDate]);
   const fullDayUnavailable = selectedDuration === 'day' && bookedSlots.length > 0;
   const availableSlotCount = selectedDuration === 'day'
     ? (fullDayUnavailable ? 0 : 1)
@@ -266,7 +288,7 @@ function Home() {
       : `${availableSlotCount} créneau${availableSlotCount > 1 ? 'x' : ''} disponible${availableSlotCount > 1 ? 's' : ''}`;
 
   useEffect(() => {
-    if (isDayOnlyEquipment && selectedDuration !== 'day') {
+    if (isDayOnlyEquipment && selectedDuration === 'half-day') {
       setSelectedDuration('day');
       setSelectedTime(null);
     }
@@ -275,8 +297,10 @@ function Home() {
   useEffect(() => {
     let isCurrent = true;
     setIsLoadingSlots(true);
+    setAvailabilityError(false);
     setSelectedTime(null);
     setNotice('');
+    if (isLongRental) { setBookedSlots([]); setIsLoadingSlots(false); return () => { isCurrent = false; }; }
     fetch(`/api/bookings?equipmentId=${selectedId}&date=${selectedDate}`)
       .then(async (response) => {
         if (!response.ok) throw new Error('Impossible de charger les disponibilités.');
@@ -286,24 +310,26 @@ function Home() {
       .catch(() => {
         if (isCurrent) {
           setBookedSlots([]);
+          setAvailabilityError(true);
           setNotice('Les disponibilités sont momentanément indisponibles. Réessaie dans un instant.');
         }
       })
       .finally(() => { if (isCurrent) setIsLoadingSlots(false); });
     return () => { isCurrent = false; };
-  }, [selectedId, selectedDate]);
+  }, [selectedId, selectedDate, isLongRental]);
 
   async function reserveSlot() {
+    if (isLongRental && returnDate <= selectedDate) return setNotice('La date de retour doit être après la date de retrait.');
     if (!selectedTime) return setNotice('Choisis d’abord un créneau de retrait.');
     if (!firstName.trim() || !lastName.trim() || !email.trim()) return setNotice('Indique ton prénom, ton nom et ton adresse e-mail pour confirmer.');
     if (!acceptedRules) return setNotice('Confirme que tu as lu les règles de location avant de valider.');
     setIsSubmitting(true);
     setNotice('');
     try {
-      const response = await fetch('/api/bookings', {
+      const response = await fetch(isLongRental ? '/api/rental-requests' : '/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ equipmentId: selectedId, date: selectedDate, time: selectedTime, duration: selectedDuration, name: `${firstName.trim()} ${lastName.trim()}`, email }),
+        body: JSON.stringify({ equipmentId: selectedId, date: selectedDate, time: selectedTime, duration: selectedDuration, name: `${firstName.trim()} ${lastName.trim()}`, email, returnDate, destination }),
       });
       const data = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -328,7 +354,7 @@ function Home() {
         <div className="hero-copy">
           <p className="eyebrow"><Sparkles aria-hidden="true" /> Tout le matériel, sans contrainte</p>
           <h1>Testez, <em>approuvez, achetez.</em></h1>
-          <p className="hero-text">Tennis, padel, surf ou vélo électrique : choisis ton matériel et réserve-le pour la demi-journée ou la journée complète, selon le produit.</p>
+          <p className="hero-text">Tennis, padel, surf ou vélo électrique : choisis ton matériel et loue-le pour une session, une journée ou un séjour de plusieurs jours.</p>
           <div className="hero-actions"><a className="button button-primary" href="#reserver">Trouver mon créneau <ChevronRight aria-hidden="true" /></a><a className="text-link" href="#equipements">Voir les équipements</a></div>
           <div className="hero-notes" aria-label="Les avantages de la location"><span><Check aria-hidden="true" /> Matériel vérifié</span><span><Check aria-hidden="true" /> Retrait rapide</span><span><Check aria-hidden="true" /> Paiement en magasin</span></div>
         </div>
@@ -342,23 +368,24 @@ function Home() {
 
       <section id="reserver" className="booking-section">
         <div className="section-shell booking-layout">
-          <div className="booking-intro"><p className="eyebrow">Réservation en ligne</p><h2>Un créneau, et c’est parti.</h2><p>Choisis ton matériel, la date et l’horaire de retrait. Les créneaux déjà réservés se verrouillent automatiquement.</p><div className="booking-tip"><ShieldCheck aria-hidden="true" /> Ton matériel est mis de côté dès la confirmation.</div></div>
+          <div className="booking-intro"><p className="eyebrow">Réservation en ligne</p><h2>Un créneau, et c’est parti.</h2><p>Choisis ton matériel, la date et l’horaire de retrait. Les créneaux déjà réservés se verrouillent automatiquement.</p><div className="booking-tip"><ShieldCheck aria-hidden="true" /> Location courte : réservation de créneau. Longue durée : devis à valider avec le magasin.</div></div>
           <div className="booking-card" aria-live="polite">
             {confirmation ? (
-              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">Réservation confirmée</p><h3>Merci pour ta réservation !</h3><p>Tu recevras par mail les informations de ta réservation. Viens en magasin récupérer et payer ta location.</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}</span></div><div className="confirmation-hours"><Clock3 aria-hidden="true" /><div><strong>Pour récupérer ton matériel</strong><span>Présente ta confirmation et une pièce d’identité. Le prix de location et l’éventuelle caution sont finalisés au retrait. Fermeture à 18h du lundi au samedi, et à 13h le dimanche.</span></div></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
+              <div className="confirmation"><div className="confirmation-icon"><Check aria-hidden="true" /></div><p className="eyebrow">{isLongRental ? "Demande enregistrée" : "Réservation confirmée"}</p><h3>{isLongRental ? "Préparons ton séjour." : "Merci pour ta réservation !"}</h3><p>{isLongRental ? "Ta demande de devis a été enregistrée. Le magasin doit encore confirmer les disponibilités, le prix et les conditions de déplacement avant toute location. Aucun matériel n’est bloqué à ce stade." : "Ta réservation est enregistrée. Conserve ce récapitulatif et présente-toi au magasin pour le retrait et le paiement."}</p><div className="confirmation-summary"><span>{selectedEquipment.name} · {selectedDurationLabel}</span><span>{prettyDate(selectedDate)} · {selectedTime}{isLongRental && <> → {prettyDate(returnDate)} · {destination}</>}</span></div><div className="confirmation-hours"><Clock3 aria-hidden="true" /><div><strong>Pour récupérer ton matériel</strong><span>Présente ta confirmation et une pièce d’identité. Le prix de location et l’éventuelle caution sont finalisés au retrait. Fermeture à 18h du lundi au samedi, et à 13h le dimanche.</span></div></div><button className="button button-secondary" type="button" onClick={() => setConfirmation(false)}>Réserver un autre créneau</button></div>
             ) : (
               <>
                 <div className="booking-card-top"><div><span className="booking-step">01</span><h3>Ta location</h3></div><span className="booking-price">{displayedPrice}<small> / {selectedDurationLabel.toLowerCase()}</small></span></div>
                 <label className="field-label" htmlFor="equipment">Matériel</label>
                 <select id="equipment" className="select-control" value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>{equipment.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
                 <a className="selected-product-link" href={`/produits/${selectedEquipment.id}`}>Voir les caractéristiques de ce modèle <ChevronRight aria-hidden="true" /></a>
-                <div className="field-pair"><div><label className="field-label" htmlFor="date">Date de retrait</label><div className="field-with-icon"><CalendarDays aria-hidden="true" /><input id="date" type="date" min={dateInDays(0)} value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></div></div><div><span className="field-label">Choisis ton tarif</span><div className="duration-options" role="group" aria-label="Durée de location">{selectableDurations.map((duration) => { const durationPrice = duration.id === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price; return <button key={duration.id} type="button" className={`duration-option ${selectedDuration === duration.id ? 'duration-option-selected' : ''}`} aria-pressed={selectedDuration === duration.id} onClick={() => { setSelectedDuration(duration.id); setSelectedTime(null); }}><Clock3 aria-hidden="true" /><span className="duration-option-copy"><span>{duration.label}</span><small>{duration.detail}</small></span><strong>{durationPrice}</strong></button>; })}</div>{isDayOnlyEquipment && <p className="duration-note">Le vélo VAE est proposé uniquement à la journée complète.</p>}</div></div>
-                <div className="slot-header"><span className="field-label">Heure de retrait</span><small>{availabilityLabel}</small></div>
-                <div className="slot-grid">{timeSlots.map((time) => { const unavailable = bookedSlots.includes(time) || fullDayUnavailable; return <button key={time} type="button" className={`slot ${selectedTime === time ? 'slot-selected' : ''}`} disabled={isLoadingSlots || unavailable} onClick={() => setSelectedTime(time)}>{time}<small>{unavailable ? 'Indisponible' : 'Disponible'}</small></button>; })}</div>
+                <div className="field-pair"><div><label className="field-label" htmlFor="date">Date de retrait</label><div className="field-with-icon"><CalendarDays aria-hidden="true" /><input id="date" type="date" min={dateInDays(0)} value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></div></div><div><span className="field-label">Choisis ton tarif</span><div className="duration-options" role="group" aria-label="Durée de location">{selectableDurations.map((duration) => { const durationPrice = ['week', 'month', 'custom'].includes(duration.id) ? 'Sur devis' : duration.id === 'day' ? selectedEquipment.dayPrice : selectedEquipment.price; return <button key={duration.id} type="button" className={`duration-option ${selectedDuration === duration.id ? 'duration-option-selected' : ''}`} aria-pressed={selectedDuration === duration.id} onClick={() => { setSelectedDuration(duration.id); setSelectedTime(null); }}><Clock3 aria-hidden="true" /><span className="duration-option-copy"><span>{duration.label}</span><small>{duration.detail}</small></span><strong>{durationPrice}</strong></button>; })}</div>{isDayOnlyEquipment && <p className="duration-note">Le VAE se loue à la journée ou sur plusieurs jours. La demi-journée n’est pas proposée.</p>}</div></div>
+                {isLongRental && <div className="long-rental-fields"><div><label className="field-label" htmlFor="return-date">Date de retour souhaitée</label><input className="text-control" id="return-date" type="date" min={selectedDate} value={returnDate} onChange={event => { setReturnDate(event.target.value); setSelectedDuration('custom'); }} /></div><div><label className="field-label" htmlFor="destination">Destination prévue</label><select id="destination" className="select-control" value={destination} onChange={event => setDestination(event.target.value)}><option>Tahiti</option><option>Moorea · transport en bateau</option><option>Autre île · à préciser avec le magasin</option></select></div><p className="duration-note">Prix et disponibilité à confirmer par le magasin. Pour un départ en bateau, son accord préalable et celui du transporteur sont nécessaires. Le billet bateau n’est pas inclus.</p></div>}
+                <div className="slot-header"><span className="field-label">Heure de retrait</span><small>{isLongRental ? "Horaire souhaité · à confirmer" : availabilityLabel}</small></div>
+                <div className="slot-grid">{timeSlots.map((time) => { const unavailable = bookedSlots.includes(time) || fullDayUnavailable || (!isLongRental && availabilityError); return <button key={time} type="button" className={`slot ${selectedTime === time ? 'slot-selected' : ''}`} disabled={isLoadingSlots || unavailable} onClick={() => setSelectedTime(time)}>{time}<small>{unavailable ? 'Indisponible' : 'Disponible'}</small></button>; })}</div>
                 <div className="customer-fields"><div><label className="field-label" htmlFor="first-name">Ton prénom</label><input id="first-name" className="text-control" value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Prénom" autoComplete="given-name" /></div><div><label className="field-label" htmlFor="last-name">Ton nom</label><input id="last-name" className="text-control" value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Nom" autoComplete="family-name" /></div><div className="customer-email"><label className="field-label" htmlFor="email">Ton e-mail</label><div className="field-with-icon"><Mail aria-hidden="true" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="toi@email.com" autoComplete="email" /></div></div></div>
-                <label className="rental-consent"><input type="checkbox" checked={acceptedRules} onChange={(event) => setAcceptedRules(event.target.checked)} /><span>J’ai lu les <a href="#regles">règles de location et de caution</a> à Tahiti et je comprends que le contrat est finalisé en magasin lors du retrait.</span></label>
+                <label className="rental-consent"><input type="checkbox" checked={acceptedRules} onChange={(event) => setAcceptedRules(event.target.checked)} /><span>J’ai lu les <a href="/tarifs-reglement" target="_blank" rel="noreferrer">tarifs, règlement et caution</a> à Tahiti et je comprends que le contrat est finalisé en magasin lors du retrait.</span></label>
                 {notice && <p className="form-notice" role="status">{notice}</p>}
-                <button className="button button-primary confirm-button" type="button" onClick={reserveSlot} disabled={isSubmitting || isLoadingSlots}>{isSubmitting ? 'Confirmation…' : 'Valider ma réservation'} <ChevronRight aria-hidden="true" /></button><p className="payment-note">Aucun paiement en ligne. Tu règles ta location et, si elle est demandée, l’éventuelle caution lors du retrait.</p>
+                <button className="button button-primary confirm-button" type="button" onClick={reserveSlot} disabled={isSubmitting || isLoadingSlots || (!isLongRental && availabilityError)}>{isSubmitting ? 'Envoi…' : isLongRental ? 'Demander mon devis' : 'Valider ma réservation'} <ChevronRight aria-hidden="true" /></button><p className="payment-note">Aucun paiement en ligne. Tu règles ta location et, si elle est demandée, l’éventuelle caution lors du retrait.</p>
               </>
             )}
           </div>
@@ -366,7 +393,8 @@ function Home() {
       </section>
 
       <section id="comment" className="section-shell steps-section"><div className="section-heading compact-heading"><div><p className="eyebrow">Comment ça marche</p><h2>Quatre étapes,<br /><em>zéro détour.</em></h2></div><p>Le parcours Decathlon Location, pensé ici pour un retrait simple et rapide à Punaauia.</p></div><div className="steps"><article><span>01</span><CalendarDays aria-hidden="true" /><h3>Tu choisis</h3><p>Ton matériel, ton tarif, la date et le créneau qui te conviennent.</p></article><article><span>02</span><FileCheck2 aria-hidden="true" /><h3>Tu réserves</h3><p>Ton équipement est mis de côté dès la confirmation de ton créneau.</p></article><article><span>03</span><PackageCheck aria-hidden="true" /><h3>Tu récupères</h3><p>Tu passes au magasin pour vérifier, récupérer et régler ta location.</p></article><article><span>04</span><Waves aria-hidden="true" /><h3>Tu profites</h3><p>Après ta session, tu restitues le matériel complet à l’heure prévue.</p></article></div></section>
-      <RentalRules />
+      <section id="longue-duree" className="section-shell long-stay"><div><p className="eyebrow">Du temps pour profiter</p><h2>Un week-end à Moorea,<br /><em>ou tout un mois à vélo.</em></h2><p>Retrouve les mêmes équipements pour tes séjours et ton quotidien : vélo électrique, surf, tennis et padel. Choisis une semaine, un mois ou tes propres dates.</p><a className="button button-primary" href="#reserver" onClick={() => setSelectedDuration('week')}>Préparer ma longue durée <ChevronRight /></a></div><div className="stay-card"><h3>Ton séjour en trois étapes</h3><ol><li>Choisis ton matériel et tes dates.</li><li>Le magasin étudie les disponibilités et établit ton devis.</li><li>Après accord, récupère ton matériel et les conditions de retour.</li></ol><p>Un départ avec Aremiti ? Précise Moorea dans ta demande. Vérifie l’acceptation du vélo, de sa batterie et les modalités d’embarquement directement auprès du transporteur.</p><a href="https://www.aremitiexpress.com/" target="_blank" rel="noreferrer">Consulter Aremiti <ExternalLink /></a></div></section>
+      <section id="regles" className="section-shell tariff-teaser"><div><p className="eyebrow">Avant de partir</p><h2>Les tarifs et les conditions,<br /><em>au même endroit.</em></h2><p>Prix de location, caution, retrait, retour et séjours dans les îles : consulte le détail sur une page dédiée.</p></div><a className="button button-secondary" href="/tarifs-reglement">Consulter les tarifs & le règlement <ChevronRight /></a></section>
       <Faq />
       <section id="magasin" className="store-section"><div className="section-shell store-layout"><div><p className="eyebrow">Ton point de retrait</p><h2>On se retrouve<br /><em>à Punaauia.</em></h2></div><div className="store-details"><MapPin aria-hidden="true" /><div><strong>Decathlon Tahiti</strong><p>Côté Phenix, Punaauia<br />Lun–ven 8h30–18h · sam 8h–18h · dim 8h–13h</p></div><a href="#reserver" aria-label="Réserver un créneau"><ChevronRight aria-hidden="true" /></a></div></div></section>
       <Footer />
@@ -379,10 +407,12 @@ export default function App() {
 
   useEffect(() => {
     const updatePath = () => setPathname(window.location.pathname);
+    updatePath();
     window.addEventListener('popstate', updatePath);
     return () => window.removeEventListener('popstate', updatePath);
   }, []);
 
+  if (pathname.replace(/\/$/, '') === '/tarifs-reglement') return <main><SiteHeader details /><section className="section-shell tariff-title"><a className="text-link" href="/"><ArrowLeft /> Retour à l’accueil</a><p className="eyebrow">Préparer ta location</p><h1>Tarifs & règlement</h1><p>Les conditions de location à Tahiti, pour une session ou un séjour.</p></section><TariffTable /><RentalRules /><Faq /><Footer /></main>;
   const product = productFromPath(pathname);
   return product ? <ProductDetails product={product} /> : <Home />;
 }
